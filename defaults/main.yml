@@ -1,0 +1,9 @@
+---
+# defaults file for ansible-k8s-cloudsql-standalone
+cloud_sql_name: "foo"
+cloud_sql_instance: "foo-instance"
+cloud_sql_image: "gcr.io/cloudsql-docker/gce-proxy:1.14"
+namespace: "default"
+src_port: 5432
+target_port: 5432
+cloud_sql_credentials: ""

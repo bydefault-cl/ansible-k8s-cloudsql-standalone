@@ -1,0 +1,37 @@
+---
+# tasks file for ansible-k8s-cloudsql-standalone
+- name: Install Python packages.
+  pip:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - PyYAML
+      - jsonpatch
+      - kubernetes
+      - openshift
+    state: present
+
+- name: Create CloudSQL Proxy namespace
+  kubernetes.core.k8s:
+    name: "{{ namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Create CloudSQL Proxy secret
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: cloudsql-instance-credentials-secret
+        namespace: "{{ namespace }}"
+      data:
+        credentials.json: "{{ cloud_sql_credentials }}"
+
+- name: Deploy CloudSQL Proxy
+  kubernetes.core.k8s:
+    state: present
+    template:
+      path: 'deployment.yml.j2'

@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ cloud_sql_name }}
+  namespace: {{ namespace }}
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ cloud_sql_name }}
+  ports:
+    - port: {{ src_port }}
+      name: sql
+      targetPort: {{ target_port }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: {{ cloud_sql_name }}-deployment
+    namespace: {{ namespace }}
+spec:
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: {{ cloud_sql_name }}
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: {{ cloud_sql_name }}
+        tier: backend
+    spec:
+      containers: 
+          - name: {{ cloud_sql_name }}
+            image: {{ cloud_sql_image }}
+            command: ["/cloud_sql_proxy",
+                  "-instances={{ cloud_sql_instance }}",
+                  "-credential_file=/secrets/cloudsql/credentials.json"]
+            securityContext:
+              runAsUser: 2
+              allowPrivilegeEscalation: false
+            resources:
+              requests:
+                cpu: 100m
+                memory: 64Mi
+              limits:
+                cpu: 200m
+                memory: 128Mi
+            volumeMounts:
+              - name: cloudsql-instance-credentials
+                mountPath: /secrets/cloudsql
+                readOnly: true
+            ports:
+              - containerPort: {{ src_port }}
+                name: proxy-port
+      volumes:
+          - name: cloudsql-instance-credentials
+            secret:
+              secretName: cloudsql-instance-credentials-secret
+---
+apiVersion: autoscaling/v2beta1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ cloud_sql_name }}-hpa
+  namespace: {{ namespace }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ cloud_sql_name }}-deployment
+  minReplicas: 1
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      targetAverageUtilization: 75
