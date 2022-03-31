@@ -50,7 +50,25 @@ Author Information
 
 An optional section for the role authors to include contact information, or a website (HTML is not allowed).
 
+Example Use
+-----------
+
+```
+---
+- hosts: localhost
+  remote_user: root
+  roles:
+    - ansible-k8s-cloudsql-standalone
+  vars:
+    cloud_sql_credentials: "123asDDF"
+    cloud_sql_name: "cloudsql-instance"
+    cloud_sql_instance: "gcp-project:us-east1:db-instance-1234asdf=tcp:0.0.0.0:5432"
+    cloud_sql_image: "gcr.io/cloudsql-docker/gce-proxy:1.14"
+    namespace: "cloudsql-proxy"
+
+```
+
 Test
 ----
 
-ansible-playbook tests/test.yml -i tests/inventory  --syntax-check
+```ansible-playbook tests/test.yml -i tests/inventory  --syntax-check```
