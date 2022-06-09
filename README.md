@@ -73,7 +73,7 @@ Including an example of how to use your role (for instance, with variables passe
     namespace: "cloudsql-proxy"
 ```
 
-- *Ejemplo-2. Incluyendo el rol dentro del task (esto permite invocar el rol múltiple veces y con varibales diferenciadas)*
+- *Ejemplo-2. Incluyendo el rol dentro del task (esto permite invocar el rol múltiple veces y con variables diferenciadas)*
 
 ```yml
 - hosts: localhost
