@@ -1,0 +1,25 @@
+stages:
+- merge-request
+- release
+
+merge_request:
+  stage: merge-request
+  image: alpine:3.13
+  script:
+    - apk add --no-cache bash curl python3
+    - HOST=${CI_PROJECT_URL} CI_PROJECT_ID=${CI_PROJECT_ID} CI_COMMIT_REF_NAME=${CI_COMMIT_REF_NAME} GITLAB_USER_ID=${GITLAB_USER_ID} PRIVATE_TOKEN=${GL_TOKEN} ./mr.sh
+  only:
+    - /^release\//
+    - /^feature\//
+
+semantic-release:
+  image: node:16-buster-slim
+  stage: release
+  before_script:
+    - apt-get update && apt-get install -y --no-install-recommends git-core ca-certificates
+    - npm install -g semantic-release @semantic-release/gitlab
+  script:
+    - semantic-release $DRY_RUN_OPT -b $CI_COMMIT_REF_NAME
+  only:
+    - master
+    - main
